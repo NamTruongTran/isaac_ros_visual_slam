@@ -6,6 +6,7 @@ std_msgs/Header header
 # 0 - Unknown state
 # 1 - Success
 # 2 - Failed
+# 3 - Success but invalidated by IMU
 uint8 vo_state
 
 # The total time it takes to process the input frames to output messages in seconds.

@@ -15,9 +15,11 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include <string>
+#ifndef ISAAC_ROS_VISUAL_SLAM__IMPL__CUVSLAM_ROS_CONVERTION_HPP_
+#define ISAAC_ROS_VISUAL_SLAM__IMPL__CUVSLAM_ROS_CONVERTION_HPP_
 
-#include "isaac_ros_visual_slam/impl/viz_helper.hpp"
+#include "cuvslam.h"  // NOLINT - include .h without directory
+#include "tf2/LinearMath/Transform.h"
 
 namespace nvidia
 {
@@ -26,41 +28,15 @@ namespace isaac_ros
 namespace visual_slam
 {
 
-// VisHelper
-VisHelper::VisHelper() {}
-void VisHelper::Init(
-  CUVSLAM_TrackerHandle cuvslam_handle,
-  const tf2::Transform & canonical_pose_cuvslam,
-  const std::string & frame_id)
-{
-  cuvslam_handle_ = cuvslam_handle;
-  canonical_pose_cuvslam_ = canonical_pose_cuvslam;
-  frame_id_ = frame_id;
-}
+CUVSLAM_Pose TocuVSLAMPose(const tf2::Transform & tf_mat);
+tf2::Transform FromcuVSLAMPose(const CUVSLAM_Pose & cuvslam_pose);
 
-void VisHelper::Exit()
-{
-  if (!cuvslam_handle_) {
-    return;
-  }
-  {
-    std::unique_lock<std::mutex> locker(mutex_);
-
-    Reset();
-
-    cuvslam_handle_ = 0;
-    frame_id_ = "";
-
-    cond_var_.notify_all();
-  }
-  try {
-    if (thread_.joinable()) {
-      thread_.join();
-    }
-  } catch (std::system_error & e) {
-  }
-}
+tf2::Transform ChangeBasis(
+  const tf2::Transform & target_pose_source,
+  const tf2::Transform & source_pose_source);
 
 }  // namespace visual_slam
 }  // namespace isaac_ros
 }  // namespace nvidia
+
+#endif  // ISAAC_ROS_VISUAL_SLAM__IMPL__CUVSLAM_ROS_CONVERTION_HPP_

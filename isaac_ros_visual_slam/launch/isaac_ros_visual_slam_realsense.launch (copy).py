@@ -15,8 +15,10 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-
+import os
 from ament_index_python.packages import get_package_share_directory
+
+
 
 import launch
 from launch_ros.actions import ComposableNodeContainer, Node
@@ -24,26 +26,6 @@ from launch_ros.descriptions import ComposableNode
 
 from launch.substitutions import LaunchConfiguration
 
-
-import os
-import xacro
-import tempfile
-
-
-def to_urdf(xacro_path, parameters=None):
-    """Convert the given xacro file to URDF file.
-    * xacro_path -- the path to the xacro file
-    * parameters -- to be used when xacro file is parsed.
-    """
-    urdf_path = tempfile.mktemp(prefix="%s_" % os.path.basename(xacro_path))
-
-    # open and process file
-    doc = xacro.process_file(xacro_path, mappings=parameters)
-    # open the output file
-    out = xacro.open_output(urdf_path)
-    out.write(doc.toprettyxml(indent='  '))
-
-    return urdf_path
 
 def generate_launch_description():
 
@@ -86,10 +68,8 @@ def generate_launch_description():
                     'enable_observations_view': True,
                     'map_frame': 'map',
                     'odom_frame': 'odom',
-                    'input_base_frame': 'base_link',
-                    'input_left_camera_frame': 'D455_infra1_frame',
-                    'input_right_camera_frame': 'D455_infra2_frame',
-                    'input_imu_frame': 'D455_gyro_frame',
+                    'base_frame': 'camera_link',
+                    'input_imu_frame': 'camera_gyro_optical_frame',
                     'enable_imu_fusion': True,
                     'gyro_noise_density': 0.000244,
                     'gyro_random_walk': 0.000019393,
@@ -116,20 +96,11 @@ def generate_launch_description():
         ],
         output='screen'
     )
-    
-    xacro_path = os.path.join(get_package_share_directory('bearcar_description'), 'urdf', 'bearcar.urdf.xacro')
-    urdf = to_urdf(xacro_path, {'use_nominal_extrinsics' : 'true', 'add_plug' : 'true'})
-    model_node = Node(
-        name='model_node',
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        namespace='',
-        output='screen',
-        arguments = [urdf]
-        )
 
     return launch.LaunchDescription([
-    	visual_slam_launch_container, 
-    	
-    	model_node
-	])
+    
+    visual_slam_launch_container
+    
+    
+    
+    ])
